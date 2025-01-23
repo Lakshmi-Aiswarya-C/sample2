@@ -1,4 +1,6 @@
+pyttsx3
 streamlit
 google-generativeai
 python-dotenv
 Pillow
+gtts
