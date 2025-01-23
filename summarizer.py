@@ -1,3 +1,5 @@
+from gtts import gTTS
+import tempfile
 from dotenv import load_dotenv
 import os
 import streamlit as st
@@ -30,6 +32,13 @@ def input_image_setup(uploaded_file):
         return image_parts
     else:
         raise FileNotFoundError("No file uploaded")
+
+# Function to convert text to speech using gTTS
+def start_speech(text):
+    tts = gTTS(text, lang="en")
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as fp:
+        tts.save(fp.name)
+        st.audio(fp.name, format="audio/mp3")
 
 # Initialize the Streamlit app
 st.set_page_config(page_title="Lab Report Summarizer", layout="centered", page_icon="🩺")
@@ -122,6 +131,11 @@ if submit:
             # Show the summary to the user
             st.markdown("<h3 style='color:#ffd700;'>Summary of the Lab Report</h3>", unsafe_allow_html=True)
             st.success(response)
+
+            # Add "Voice" button
+            if st.button("Play Summary as Audio"):
+                start_speech(response)
+
         except Exception as e:
             st.markdown(f"<div class='error'>Error processing the report: {e}</div>", unsafe_allow_html=True)
     else:
