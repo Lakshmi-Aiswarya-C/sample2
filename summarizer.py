@@ -1,9 +1,9 @@
-from gtts import gTTS
-import tempfile
 from dotenv import load_dotenv
 import os
 import streamlit as st
 from PIL import Image
+from gtts import gTTS
+import tempfile
 import google.generativeai as genai
 
 # Load environment variables
@@ -94,6 +94,10 @@ st.markdown("""
 st.markdown("<div class='header'>Lab Report Summarizer</div>", unsafe_allow_html=True)
 st.markdown("<div class='subheader'>Upload your lab report and get a simplified summary</div>", unsafe_allow_html=True)
 
+# Initialize session state for the response text
+if "response_text" not in st.session_state:
+    st.session_state.response_text = ""
+
 # User inputs
 input = st.text_input("Enter Additional Details (Optional):", key="input", help="Add any specific details or context about the lab report.")
 uploaded_file = st.file_uploader("Upload Lab Report Image (JPG, JPEG, PNG):", type=["jpg", "jpeg", "png"], label_visibility="collapsed")
@@ -126,17 +130,17 @@ if submit:
             complete_prompt = f"{input_prompt}\n\nLab Report: {input}\n\nSummary:"
 
             # Process the lab report with the Gemini model
-            response = get_gemini_response(complete_prompt, image_data, input)
-
-            # Show the summary to the user
-            st.markdown("<h3 style='color:#ffd700;'>Summary of the Lab Report</h3>", unsafe_allow_html=True)
-            st.success(response)
-
-            # Add "Voice" button
-            if st.button("Play Summary as Audio"):
-                start_speech(response)
-
+            st.session_state.response_text = get_gemini_response(complete_prompt, image_data, input)
         except Exception as e:
             st.markdown(f"<div class='error'>Error processing the report: {e}</div>", unsafe_allow_html=True)
     else:
         st.markdown("<div class='warning'>Please upload a lab report to proceed.</div>", unsafe_allow_html=True)
+
+# Display the response text if available
+if st.session_state.response_text:
+    st.markdown("<h3 style='color:#ffd700;'>Summary of the Lab Report</h3>", unsafe_allow_html=True)
+    st.success(st.session_state.response_text)
+
+    # Add "Voice" button
+    if st.button("Voice"):
+        start_speech(st.session_state.response_text)
